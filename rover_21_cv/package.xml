@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rover_21_image</name>
+  <name>rover_21_cv</name>
   <version>0.0.0</version>
-  <description>The rover_21_image package</description>
+  <description>The rover_21_cv package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
