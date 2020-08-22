@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+     <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="nmea_node_2" respawn="true"  >
+   
+      <param name="baud" value="4800"/>
+      <param name="port" value="/dev/ttyUSB0"/>
+      <param name="frame_id " value="gps_link"/>
+      <remap from="/fix" to="/gps/fix" />
+    
+  </node>
+ 
+</launch>

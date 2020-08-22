@@ -1,0 +1,20 @@
+RoverSerial:
+    sub_topics:
+        sub_topic1: 'rover_serial_topic'
+        sub_topic2: 'rover_serial_2'
+        sub_topic3: 'rover_serial_3'
+
+    pub_topics:
+        pub_topic1: '/rover_serial_encoder'
+        pub_topic2: 'rover_serial_sensor'
+        pub_topic3: 'rover_serial_sensor3'
+
+    baudrates:
+        baudrate1: '115200'
+        baudrate2: '115200'
+        baudrate3: '0'
+
+    ports:
+        serialString1: '/dev/ttyUSB0'
+        serialString2: '/dev/ttyUSB'
+        serialString3: '/dev/ttyUSB'
