@@ -14,7 +14,7 @@ from math import sin, cos, atan2
 import math
 from collections import defaultdict
 
-class AutonomousDrive():
+class AutonomousDrive:
 	def __init__(self):
 		#Init ros node
 		rospy.init_node("autonomous_drive")
@@ -24,8 +24,10 @@ class AutonomousDrive():
 		self.oa = ObstacleAvoidance(self)
 		self.fw = FollowWall(self)
 
-		self.alpha = 0.45 #Object avoidance coefficient
-		self.oa_threshold = 1.5 #Object avoidance threshold
+		self.alpha = 0.55 #Object avoidance coefficient
+		self.beta = 0.5
+		self.epsilon = 1e-5
+		self.oa_threshold = 1.25 #Object avoidance threshold
 
 		self.goal = (20.0, 20.0) #Init goal
 		self.goal_threshold = 0.5 #Threshold to goal in meters
@@ -73,6 +75,7 @@ class AutonomousDrive():
 		self.twist_pub = rospy.Publisher(self.twist_topic, Twist, queue_size = 10)
 		self.u_g_pub = rospy.Publisher("/debug/u_g", String, queue_size = 10) #For debugging
 		self.omega_pub = rospy.Publisher("/debug/omega", String, queue_size = 10) #For debugging
+		self.alpha_pub = rospy.Publisher("/debug/alpha", String, queue_size = 10) #For debugging
 
 		#Run main function
 		self.main()
@@ -103,6 +106,13 @@ class AutonomousDrive():
 	def lidar_cb(self, data):
 		self.latest_scan = data.ranges
 
+	#2D rotation matrix
+	def rotate_matrix(self, angle):
+		a = self.fix_yaw(angle)
+		r = np.float32([[cos(a), -sin(a)], [sin(a), cos(a)]])
+
+		return r
+
 	#Set goal point
 	def set_goal(self, point):
 		self.goal = point
@@ -129,20 +139,22 @@ class AutonomousDrive():
 
 	#Find desired vector to the goal point
 	def find_u_g(self):
-		u_gtg = self.gtg.find_u_gtg() #Get go-to-goal unit vector
-		u_oa = self.oa.find_u_oa() #Get object avoidance unit vector
+		self.u_gtg = self.gtg.find_u_gtg() #Get go-to-goal unit vector
+		self.u_oa = self.oa.find_u_oa() #Get object avoidance unit vector
 
 		#Calculate "to goal" vector by using alpha coeffient
-		self.u_g = self.alpha * u_oa + (1 - self.alpha) * u_gtg
+		#self.alpha = 1 - np.exp(self.beta * min(self.distances))
+		self.alpha_pub.publish(str(self.alpha)) #For debugging
+		self.u_g = self.alpha * self.u_oa + (1 - self.alpha) * self.u_gtg
 
-		self.u_g_pub.publish("{}{}".format(self.u_g[0], self.u_g[1])) #For debugging
+		self.u_g_pub.publish("{}{}".format(self.u_g[0, 0], self.u_g[0, 1])) #For debugging
 
 		return self.u_g
 
 	#Navigate rover with calculated goal behaviour
 	def navigate(self, verbose = False):
 		#Angle between goal and current position
-		self.theta_g = atan2(self.u_g[1], self.u_g[0])
+		self.theta_g = atan2(self.u_g[0, 1], self.u_g[0, 0])
 
 		#Calculate yaw error and fix it
 		self.theta_g_error = self.theta_g - self.yaw
@@ -180,7 +192,15 @@ class AutonomousDrive():
 
 				if control:
 					self.find_u_g() #Calculate "to goal" vector
-					w = self.navigate() #Get angular velocity using PID
+					fw = self.fw.check_fw()
+					#print(self.fw.find_u_fw())
+					#fw = False
+
+					if fw:
+						self.u_g = self.fw.find_u_fw()
+						w = self.navigate()
+					else:
+						w = self.navigate() #Get angular velocity using PID
 
 					#Publish new speed values
 					new_twist = Twist()
@@ -195,7 +215,7 @@ class AutonomousDrive():
 					self.twist_pub.publish(new_twist)
 					self.goal = (5.0, 5.0)
 
-class GoToGoal():
+class GoToGoal:
 	#ad: Autonomous Drive object reference
 	def __init__(self, ad):
 		self.ad = ad
@@ -203,14 +223,14 @@ class GoToGoal():
 	#Find go to goal behaviour unit vector
 	def find_u_gtg(self):
 		#Unit vector to goal
-		self.u_gtg = np.float32([self.ad.goal[0] - self.ad.x, self.ad.goal[1] - self.ad.y])
+		self.u_gtg = np.float32([[self.ad.goal[0] - self.ad.x, self.ad.goal[1] - self.ad.y]])
 		self.u_gtg /= np.linalg.norm(self.u_gtg)
 
 		return self.u_gtg
 
 	def navigate(self, verbose = False):
 		#Angle between goal and current position
-		self.theta_g = atan2(self.u_gtg[1], self.u_gtg[0])
+		self.theta_g = atan2(self.u_gtg[0, 1], self.u_gtg[0, 0])
 
 		#Calculate yaw error and fix it
 		self.theta_g_error = self.theta_g - self.ad.yaw
@@ -235,7 +255,7 @@ class GoToGoal():
 
 		return self.ad.w
 
-class ObstacleAvoidance():
+class ObstacleAvoidance:
 	#ad: Autonomous Drive object reference
 	def __init__(self, ad):
 		self.ad = ad
@@ -244,7 +264,7 @@ class ObstacleAvoidance():
 	#Find obstacle avoidance behaviour unit vector
 	def find_u_oa(self):
 		#Unit vectors to avoid obstacle
-		u_array = [np.float32([-1., 0.]) for i in range(len(self.ad.distances))]
+		u_array = [np.float32([-1., -1.]) / math.sqrt(2) for i in range(len(self.ad.distances))]
 		yaw = self.ad.yaw
 
 		#Sort and enumerate distance dictionary
@@ -255,30 +275,38 @@ class ObstacleAvoidance():
 			else:
 				#Calculate angle of the obstacle and rotate the unit vector			
 				angle = self.ad.fix_yaw(yaw + d)
-				u_array[i] = np.dot(self.rotate_matrix(angle), u_array[i])
+				u_array[i] = np.dot(self.ad.rotate_matrix(angle), u_array[i])
 
 		#Get unit vector of the sum of the object avoidance vectors
-		sum_vector = np.sum(u_array) / (np.linalg.norm(u_array) + self.epsilon)
+		sum_vector = np.sum(u_array, axis = 0, keepdims = True) / (np.linalg.norm(u_array) + self.epsilon)
 
 		self.u_oa = sum_vector
 
-		return sum_vector
-
-	#2D rotation matrix
-	def rotate_matrix(self, angle):
-		a = self.ad.fix_yaw(angle)
-		r = np.float32([[cos(a), -sin(a)], [sin(a), cos(a)]])
-
-		return r
+		return self.u_oa	
 
 class FollowWall:
 	#ad: Autonomous Drive object reference
 	def __init__(self, ad):
 		self.ad = ad
 
+	#Check if switching to the follow wall behaviour is necessary
+	def check_fw(self):
+		self.ad.find_u_g() #Calculate u_gtg and u_oa
+
+		r = np.dot(self.ad.u_gtg, self.ad.u_oa.T)
+
+		return r < 0
+
 	#Find follow wall behaviour unit vector
 	def find_u_fw(self):
-		pass
+		self.ad.find_u_g() #Calculate u_oa and u_gtg
 
+		L_f2_g = (1 - self.ad.alpha) * np.dot(self.ad.u_oa, self.ad.u_oa.T)
+		L_f1_g = self.ad.alpha * np.dot(self.ad.u_oa, self.ad.u_gtg.T)
+
+		self.u_fw = (1 / (L_f2_g - L_f1_g)) * (L_f2_g * self.ad.u_gtg - L_f1_g * self.ad.u_oa)
+
+		return self.u_fw
+ 
 if __name__ == '__main__':
 	ad = AutonomousDrive()
