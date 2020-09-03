@@ -1,6 +1,6 @@
 # Autonomous Navigation
 
-To run autonomous navigation correctly, follow given steps.
+To run autonomous navigation in Gazebo correctly, follow given steps.
 
 1- Run Husky or Rover in Gazebo (if available, use husky_velodyne package)
 
