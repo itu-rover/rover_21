@@ -6,8 +6,9 @@
 import rospy
 from sensor_msgs.msg import Imu, NavSatFix, LaserScan
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Point
 from std_msgs.msg import String
+from visualization_msgs.msg import Marker, MarkerArray
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import numpy as np
 from math import sin, cos, atan2
@@ -76,6 +77,7 @@ class AutonomousDrive:
 		self.u_g_pub = rospy.Publisher("/debug/u_g", String, queue_size = 10) #For debugging
 		self.omega_pub = rospy.Publisher("/debug/omega", String, queue_size = 10) #For debugging
 		self.alpha_pub = rospy.Publisher("/debug/alpha", String, queue_size = 10) #For debugging
+		self.marker_pub = rospy.Publisher("/debug/markers", MarkerArray, queue_size = 50) #For debugging markers
 
 		#Run main function
 		self.main()
@@ -86,6 +88,7 @@ class AutonomousDrive:
 		orientation = data.pose.pose.orientation #Quaternion orientation of the rover
 
 		self.x, self.y = position.x, position.y
+		self.pos = np.float32([[self.x, self.y]])
 
 	#IMU callback function
 	def imu_cb(self, data):
@@ -122,9 +125,9 @@ class AutonomousDrive:
 		#Dictionary with default float key
 		self.distances = defaultdict(float)
 
-		#Group points by 15 and find the closest point
-		for i in range(0, len(self.latest_scan), 15):
-			min_dist = min(self.latest_scan[i: i + 14])
+		#Group points by 12 and find the closest point
+		for i in range(0, len(self.latest_scan), 12):
+			min_dist = min(self.latest_scan[i: i + 11])
 
 			#Calculate yaw of the mid-point of the current point group
 			yaw = self.fix_yaw(self.scan_min_angle + (i / 2) * self.angle_increment)
@@ -181,6 +184,64 @@ class AutonomousDrive:
 
 		return self.w
 
+	#ONLY FOR DEBUGGING
+	#Create marker to visualize in Rviz
+	def get_marker(self, _id, rgba, vector):
+		r, g, b, a = rgba #Red Green Blue Alpha
+		#Alpha is the opacity of the marker
+
+		marker = Marker() #Empty marker
+		marker.type = 0 #Type 0 is arrow
+		marker.header.frame_id = "odom" #Frame to be published
+		marker.ns = "markers" #Namespace of the marker
+		marker.id = _id #Id of the marker. It has to be different for every marker, otherwise it overwrites given id.
+		marker.action = 0 #Action is overwriting
+		marker.lifetime.secs = 0 #Stays forever
+		marker.scale.x = 0.03 #Scale of the arrow
+		marker.scale.y = 0.03
+		marker.scale.z = 0.06
+
+		start_pt = Point() #Start point of the marker
+		start_pt.x = self.x
+		start_pt.y = self.y
+		start_pt.z = 0.1
+
+		end_pt = Point() #End point of the marker
+		end_pt.x = self.x + vector[0, 0]
+		end_pt.y = self.y + vector[0, 1]
+		end_pt.z = 0.1
+
+		marker.points = [start_pt, end_pt] #1st point is the tail, 2nd point is the head
+
+		#Color values of marker
+		marker.color.r = r
+		marker.color.g = g
+		marker.color.b = b
+		marker.color.a = a
+
+		return marker
+
+	#ONLY FOR DEBUGGING
+	#Create desired markers and publish to Rviz
+	def visualize(self, u_gtg = True, u_oa = True, u_fw = True, u_g = True):
+		marker_array = MarkerArray() #Create marker array to publish to Rviz
+
+		#Check bool values, create desired markers and publish them
+		if u_gtg:
+			marker = self.get_marker(0, (255, 0, 0, 1), self.u_gtg)
+			marker_array.markers.append(marker)
+
+		if u_oa:
+			marker = self.get_marker(1, (0, 0, 255, 1), self.u_oa)
+			marker_array.markers.append(marker)
+
+		if u_g:
+			marker = self.get_marker(3, (0, 255, 0, 1), self.u_g)
+			marker_array.markers.append(marker)
+
+		#Publish markers
+		self.marker_pub.publish(marker_array)
+
 	#Main function thats runs while roscore is available
 	def main(self):
 		while not rospy.is_shutdown():
@@ -192,9 +253,10 @@ class AutonomousDrive:
 
 				if control:
 					self.find_u_g() #Calculate "to goal" vector
-					fw = self.fw.check_fw()
+					self.visualize() #Publish markers to Rviz
+					#fw = self.fw.check_fw()
 					#print(self.fw.find_u_fw())
-					#fw = False
+					fw = False
 
 					if fw:
 						self.u_g = self.fw.find_u_fw()
@@ -264,7 +326,7 @@ class ObstacleAvoidance:
 	#Find obstacle avoidance behaviour unit vector
 	def find_u_oa(self):
 		#Unit vectors to avoid obstacle
-		u_array = [np.float32([-1., -1.]) / math.sqrt(2) for i in range(len(self.ad.distances))]
+		u_array = np.ones((len(self.ad.distances), 2), dtype = np.float32) / (-math.sqrt(2))
 		yaw = self.ad.yaw
 
 		#Sort and enumerate distance dictionary
@@ -282,7 +344,7 @@ class ObstacleAvoidance:
 
 		self.u_oa = sum_vector
 
-		return self.u_oa	
+		return self.u_oa
 
 class FollowWall:
 	#ad: Autonomous Drive object reference
@@ -300,11 +362,34 @@ class FollowWall:
 	#Find follow wall behaviour unit vector
 	def find_u_fw(self):
 		self.ad.find_u_g() #Calculate u_oa and u_gtg
+		
+		self.u_fw = np.zeros((2, 1), dtype = np.float32)
 
-		L_f2_g = (1 - self.ad.alpha) * np.dot(self.ad.u_oa, self.ad.u_oa.T)
-		L_f1_g = self.ad.alpha * np.dot(self.ad.u_oa, self.ad.u_gtg.T)
+		if np.any(np.isfinite(self.ad.distances.values())):
+			closest_pt_yaw = min(self.ad.distances.items(), key = lambda x: x[1])
+			closest_pt_index = self.ad.distances.keys().index(closest_pt_yaw[0])
 
-		self.u_fw = (1 / (L_f2_g - L_f1_g)) * (L_f2_g * self.ad.u_gtg - L_f1_g * self.ad.u_oa)
+			rotate_yaw = self.ad.fix_yaw(closest_pt_yaw[0] + self.ad.yaw)
+			first_vec = np.dot(self.ad.rotate_matrix(rotate_yaw), np.float32([[1., 0.]])) * self.ad.distances[closest_pt_index]
+
+			if closest_pt_index < 7:
+				second_vec = np.dot(self.ad.rotate_matrix(self.ad.yaw - math.pi / 6), np.ones((2, 1), dtype = np.float32) / math.sqrt(2))
+			else:
+				second_vec = np.dot(self.ad.rotate_matrix(self.ad.yaw + math.pi / 6), np.ones((2, 1), dtype = np.float32) / math.sqrt(2))
+
+			first_vec = first_vec / np.linalg.norm(first_vec)
+			second_vec = second_vec / np.linalg.norm(second_vec)
+
+			u_fw_t = second_vec - first_vec
+			u_fw_t = u_fw_t / np.linalg.norm(u_fw_t)
+
+			u_p = self.ad.pos
+			u_a = first_vec
+
+			u_fw_p = (u_a - u_p) - np.dot((u_a - u_p), u_fw_t) * u_fw_t
+			u_fw_pp = u_fw_p - 0.75 * u_fw_p / np.linalg.norm(u_fw_p)
+
+			self.u_fw = u_fw_pp
 
 		return self.u_fw
  
