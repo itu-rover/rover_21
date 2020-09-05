@@ -27,8 +27,10 @@ class AutonomousDrive:
 
 		self.alpha = 0.55 #Object avoidance coefficient
 		self.beta = 0.5
-		self.epsilon = 1e-5
-		self.oa_threshold = 1.25 #Object avoidance threshold
+		self.epsilon = 1e-7
+		self.oa_threshold = 1.75 #Object avoidance threshold
+
+		self.u_fw = None #Follow-wall unit vector
 
 		self.goal = (20.0, 20.0) #Init goal
 		self.goal_threshold = 0.5 #Threshold to goal in meters
@@ -58,6 +60,10 @@ class AutonomousDrive:
 		self.scan_min_angle = -math.pi / 2 #Minimum scan angle
 		self.scan_max_angle = math.pi / 2 #Maximum scan angle
 		self.angle_increment = math.pi / 314.16
+
+		#Avoid obstacle vector weights
+		self.weight_step = 0.05
+		self.weights = np.float32([1.0 - abs(i - 7) * self.weight_step for i in range(15)])
 
 		#Define subscriber topics
 		self.odom_topic = "/odometry/filtered"
@@ -125,9 +131,9 @@ class AutonomousDrive:
 		#Dictionary with default float key
 		self.distances = defaultdict(float)
 
-		#Group points by 12 and find the closest point
-		for i in range(0, len(self.latest_scan), 12):
-			min_dist = min(self.latest_scan[i: i + 11])
+		#Group points by 21 and find the closest point
+		for i in range(0, len(self.latest_scan), 21):
+			min_dist = min(self.latest_scan[i: i + 20])
 
 			#Calculate yaw of the mid-point of the current point group
 			yaw = self.fix_yaw(self.scan_min_angle + (i / 2) * self.angle_increment)
@@ -140,24 +146,36 @@ class AutonomousDrive:
 		dist = math.sqrt(math.pow((self.goal[0] - self.x), 2) + math.pow((self.goal[1] - self.y), 2))
 		return dist >= self.goal_threshold
 
+	#Find go-to-goal and object avoidance unit vectors
+	def find_vectors(self):
+		self.u_gtg = self.gtg.find_u_gtg() #Get go-to-goal vector
+		self.u_gtg = self.u_gtg / np.linalg.norm(self.u_gtg + self.epsilon) #Get go-to-goal unit vector
+		self.u_oa = self.oa.find_u_oa() #Get object avoidance vector
+		self.u_oa = self.u_oa / np.linalg.norm(self.u_oa + self.epsilon) #Get object avoidance unit vector
+
 	#Find desired vector to the goal point
 	def find_u_g(self):
-		self.u_gtg = self.gtg.find_u_gtg() #Get go-to-goal unit vector
-		self.u_oa = self.oa.find_u_oa() #Get object avoidance unit vector
+		self.find_vectors() #Calculate vectors
 
 		#Calculate "to goal" vector by using alpha coeffient
 		#self.alpha = 1 - np.exp(self.beta * min(self.distances))
+
 		self.alpha_pub.publish(str(self.alpha)) #For debugging
 		self.u_g = self.alpha * self.u_oa + (1 - self.alpha) * self.u_gtg
+		self.u_g = self.u_g / np.linalg.norm(self.u_g)
 
 		self.u_g_pub.publish("{}{}".format(self.u_g[0, 0], self.u_g[0, 1])) #For debugging
 
 		return self.u_g
 
 	#Navigate rover with calculated goal behaviour
-	def navigate(self, verbose = False):
+	def navigate(self, u_g = None, verbose = False):
+		#If no vector is given, use calculated u_g
+		if u_g is None:
+			u_g = self.u_g
+
 		#Angle between goal and current position
-		self.theta_g = atan2(self.u_g[0, 1], self.u_g[0, 0])
+		self.theta_g = atan2(u_g[0, 1], u_g[0, 0])
 
 		#Calculate yaw error and fix it
 		self.theta_g_error = self.theta_g - self.yaw
@@ -186,7 +204,7 @@ class AutonomousDrive:
 
 	#ONLY FOR DEBUGGING
 	#Create marker to visualize in Rviz
-	def get_marker(self, _id, rgba, vector):
+	def get_marker(self, _id, rgba, vector, action = 0):
 		r, g, b, a = rgba #Red Green Blue Alpha
 		#Alpha is the opacity of the marker
 
@@ -195,7 +213,7 @@ class AutonomousDrive:
 		marker.header.frame_id = "odom" #Frame to be published
 		marker.ns = "markers" #Namespace of the marker
 		marker.id = _id #Id of the marker. It has to be different for every marker, otherwise it overwrites given id.
-		marker.action = 0 #Action is overwriting
+		marker.action = action #Action 0 is ADD/MODIFY, 2 is DELETE
 		marker.lifetime.secs = 0 #Stays forever
 		marker.scale.x = 0.03 #Scale of the arrow
 		marker.scale.y = 0.03
@@ -226,17 +244,33 @@ class AutonomousDrive:
 	def visualize(self, u_gtg = True, u_oa = True, u_fw = True, u_g = True):
 		marker_array = MarkerArray() #Create marker array to publish to Rviz
 
-		#Check bool values, create desired markers and publish them
+		#Check bool values, create desired markers, delete others and publish all
 		if u_gtg:
 			marker = self.get_marker(0, (255, 0, 0, 1), self.u_gtg)
+			marker_array.markers.append(marker)
+		else:
+			marker = self.get_marker(0, (255, 0, 0, 1), self.u_gtg, 2)
 			marker_array.markers.append(marker)
 
 		if u_oa:
 			marker = self.get_marker(1, (0, 0, 255, 1), self.u_oa)
 			marker_array.markers.append(marker)
+		else:
+			marker = self.get_marker(1, (0, 0, 255, 1), self.u_oa, 2)
+			marker_array.markers.append(marker)
+
+		if u_fw:
+			marker = self.get_marker(2, (255, 255, 0, 1), self.u_fw)
+			marker_array.markers.append(marker)
+		else:
+			marker = self.get_marker(2, (255, 255, 0, 1), self.u_g, 2)
+			marker_array.markers.append(marker)
 
 		if u_g:
 			marker = self.get_marker(3, (0, 255, 0, 1), self.u_g)
+			marker_array.markers.append(marker)
+		else:
+			marker = self.get_marker(3, (0, 255, 0, 1), self.u_g, 2)
 			marker_array.markers.append(marker)
 
 		#Publish markers
@@ -252,17 +286,26 @@ class AutonomousDrive:
 				self.detect_obstacles() #Construct obstacles dictionary
 
 				if control:
-					self.find_u_g() #Calculate "to goal" vector
-					self.visualize() #Publish markers to Rviz
-					#fw = self.fw.check_fw()
-					#print(self.fw.find_u_fw())
-					fw = False
+					self.u_g = self.find_u_g() #Calculate "to goal" vector
+					fw = self.fw.check_fw() #Check if follow-wall behaviour conditions are met
 
+					#print(self.fw.find_u_fw())
+					fw = False #Comment this line to enable follow-wall behaviour
+
+					#Same u_fw should be used while the whole process
 					if fw:
-						self.u_g = self.fw.find_u_fw()
-						w = self.navigate()
+						if self.u_fw is None:
+							self.u_fw = self.fw.find_u_fw()
+						self.visualize(u_fw = fw, u_g = not fw) #Publish markers to Rviz
+						w = self.navigate(u_g = self.u_fw)
 					else:
+						self.u_fw = None
+						self.u_g = self.find_u_g() #Find u_g based on u_oa and u_gtg
+						self.visualize(u_fw = fw, u_g = not fw) #Publish markers to Rviz
 						w = self.navigate() #Get angular velocity using PID
+
+					#if np.linalg.norm(self.u_oa) > 0:
+					#	_ = raw_input("Press enter to continue")
 
 					#Publish new speed values
 					new_twist = Twist()
@@ -337,7 +380,7 @@ class ObstacleAvoidance:
 			else:
 				#Calculate angle of the obstacle and rotate the unit vector			
 				angle = self.ad.fix_yaw(yaw + d)
-				u_array[i] = np.dot(self.ad.rotate_matrix(angle), u_array[i])
+				u_array[i] = np.dot(self.ad.rotate_matrix(angle), u_array[i]) * self.ad.weights[i]
 
 		#Get unit vector of the sum of the object avoidance vectors
 		sum_vector = np.sum(u_array, axis = 0, keepdims = True) / (np.linalg.norm(u_array) + self.epsilon)
@@ -353,45 +396,59 @@ class FollowWall:
 
 	#Check if switching to the follow wall behaviour is necessary
 	def check_fw(self):
-		self.ad.find_u_g() #Calculate u_gtg and u_oa
+		self.ad.find_vectors() #Calculate u_gtg and u_oa
 
 		r = np.dot(self.ad.u_gtg, self.ad.u_oa.T)
 
 		return r < 0
 
-	#Find follow wall behaviour unit vector
-	def find_u_fw(self):
+	#Induced mode behaviour
+	#Work In Progress!!!
+	def induced_mode(self):
 		self.ad.find_u_g() #Calculate u_oa and u_gtg
 		
-		self.u_fw = np.zeros((2, 1), dtype = np.float32)
+		self.u_fw = np.zeros((1, 2), dtype = np.float32)
 
 		if np.any(np.isfinite(self.ad.distances.values())):
 			closest_pt_yaw = min(self.ad.distances.items(), key = lambda x: x[1])
 			closest_pt_index = self.ad.distances.keys().index(closest_pt_yaw[0])
 
 			rotate_yaw = self.ad.fix_yaw(closest_pt_yaw[0] + self.ad.yaw)
-			first_vec = np.dot(self.ad.rotate_matrix(rotate_yaw), np.float32([[1., 0.]])) * self.ad.distances[closest_pt_index]
+			first_vec = np.dot(np.float32([[1., 0.]]), self.ad.rotate_matrix(rotate_yaw)) * self.ad.distances[closest_pt_index]
 
 			if closest_pt_index < 7:
-				second_vec = np.dot(self.ad.rotate_matrix(self.ad.yaw - math.pi / 6), np.ones((2, 1), dtype = np.float32) / math.sqrt(2))
+				second_vec = np.dot(np.ones((1, 2), dtype = np.float32) / math.sqrt(2), self.ad.rotate_matrix(self.ad.yaw - math.pi / 6))
 			else:
-				second_vec = np.dot(self.ad.rotate_matrix(self.ad.yaw + math.pi / 6), np.ones((2, 1), dtype = np.float32) / math.sqrt(2))
+				second_vec = np.dot(np.ones((1, 2), dtype = np.float32) / math.sqrt(2), self.ad.rotate_matrix(self.ad.yaw + math.pi / 6))
 
-			first_vec = first_vec / np.linalg.norm(first_vec)
-			second_vec = second_vec / np.linalg.norm(second_vec)
+			first_vec = first_vec / np.linalg.norm(first_vec + self.ad.epsilon)
+			second_vec = second_vec / np.linalg.norm(second_vec + self.ad.epsilon)
 
 			u_fw_t = second_vec - first_vec
-			u_fw_t = u_fw_t / np.linalg.norm(u_fw_t)
+			u_fw_t = u_fw_t / np.linalg.norm(u_fw_t + self.ad.epsilon)
 
 			u_p = self.ad.pos
 			u_a = first_vec
 
-			u_fw_p = (u_a - u_p) - np.dot((u_a - u_p), u_fw_t) * u_fw_t
-			u_fw_pp = u_fw_p - 0.75 * u_fw_p / np.linalg.norm(u_fw_p)
+			u_fw_p = (u_a - u_p) - np.dot((u_a - u_p), u_fw_t.T) * u_fw_t
+			u_fw_pp = u_fw_p - 0.3 * u_fw_p / np.linalg.norm(u_fw_p + self.ad.epsilon)
 
 			self.u_fw = u_fw_pp
 
 		return self.u_fw
+
+	#Find follow wall behaviour unit vector
+	#Work In Progres!!!
+	def find_u_fw(self):
+		#self.ad.find_u_g() #Calculate u_oa and u_gtg
+
+		self.u_fw_c = np.dot(self.ad.u_oa, self.ad.rotate_matrix(math.pi / 2)) # +90 rotated
+		self.u_fw_cc = np.dot(self.ad.u_oa, self.ad.rotate_matrix(-math.pi / 2)) # -90 rotated
+
+		if np.dot(self.u_fw_c, self.ad.u_gtg.T) > 0: #Check if they are pointing same quadrant
+			return self.u_fw_c
+		
+		return self.u_fw_cc
  
 if __name__ == '__main__':
 	ad = AutonomousDrive()
