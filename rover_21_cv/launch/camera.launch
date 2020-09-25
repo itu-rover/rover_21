@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+	<arg name="camera" default="c922" />
+	<arg name="gray" default="false" />
+	<arg name="cap_id" default="1" />
+
+	<rosparam file="$(find rover_21_cv)/config/camera.yaml" command="load" />
+
+	<node name="camera_node" pkg="rover_21_cv" type="camera_node" respawn="false" output="screen">
+		<param name="~gray" type="bool" value="$(arg gray)" />
+		<param name="~cap_id" type="int" value="$(arg cap_id)" />
+		<param name="~camera" type="string" value="$(arg camera)" />
+	</node>
+</launch>

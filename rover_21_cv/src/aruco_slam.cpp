@@ -1,24 +1,28 @@
-#include <iostream>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
 #include "ar_tracker/tracker.h"
+
+bool new_frame = false;
+cv::Mat frame;
+
+void camera_cb(const sensor_msgs::ImageConstPtr& msg)
+{
+	cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    frame = cv_ptr->image;
+    new_frame = true;
+}
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "aruco_slam");
 	ros::NodeHandle n;
 
-	VideoCapture cap;
-	cap.open(1);
+	std::string camera_topic;
+	n.getParam("/camera/color_topic", camera_topic);
 
-	if(!cap.isOpened())
-	{
-		std::cout << "-------------------------------------------\n\n";
-		std::cout << "   Camera is not open! Shutting down!\n\n";
-		std::cout << "-------------------------------------------";
-		return 1;
-	}
-	else
-		std::cout << "---------------Camera Opended!!!--------------\n";
-
+	image_transport::ImageTransport it(n);
+	image_transport::Subscriber camera_sub = it.subscribe(camera_topic, 1, camera_cb);
 
 	Mat_<double> mtx(3,3);
 	Mat_<double> dist(1,5);
@@ -32,22 +36,23 @@ int main(int argc, char **argv)
 	params->dist = dist;
 	params->mtx = mtx;
 
-	/*
 	ArTracker::Tracker tracker(params);
 
 	while(ros::ok())
 	{
-		Mat frame;
-		cap.read(frame);
-		tracker.run_frame(frame);
-		tracker.broadcast_tree();
 
-		int x = waitKey(1);
-		imshow("frame", frame);
+		if(new_frame)
+		{
+			tracker.run_frame(frame);
+			tracker.broadcast_tree();
+			int x = waitKey(1);
+			imshow("frame", frame);
+			new_frame = false;
+		}
+		
+		ros::spinOnce();
+		
 	}
-	*/
-
-	ArTracker::run(cap, params);
 
 	return 0;
 }

@@ -1,3 +1,6 @@
+#ifndef AR_TRACKER_H
+#define AR_TRACKER_H
+
 /*
 	READ ME:
 	Dear coder friend i strongly recommend you to read following section for 
@@ -75,7 +78,7 @@ void run(VideoCapture cap, parameters* p);
 	- tree: tree that will be updated
 	- iter: system iter counter
 */
-void run_frame(Mat frame, parameters* p, slam_tree* tree, int iter);
+void run_frame(Mat frame, parameters* p, slam_tree* tree);
 
 /*
 	not used yet. will be detailed later
@@ -132,6 +135,9 @@ std::tuple<tf::Quaternion, tf::Vector3> estimate_cam_transform(tf::Quaternion R_
 	- marker: marker that found by camera
 	outputs:
 	- marker object
+
+	NOTE: camera coordinate system is z: front y: down x:right
+			world coordinate system should be: x: front y: right z: up
 */
 slam_obj *create_marker_obj(tf::Quaternion R_cm, tf::Vector3 T_cm, int id, slam_obj* camera);
 
@@ -143,7 +149,7 @@ slam_obj *create_marker_obj(tf::Quaternion R_cm, tf::Vector3 T_cm, int id, slam_
 	outputs:
 	- camera object
 */
-slam_obj *create_camera();
+slam_obj *create_camera(float raw=PI/2, float pitch=PI, float yaw=0);
 
 
 void run(VideoCapture cap, parameters* p)
@@ -158,25 +164,21 @@ void run(VideoCapture cap, parameters* p)
 	slam_tree tree;
 	tree.add(create_camera());
 
-	//other stuff
-	int iter = 0;
-
 	while(ros::ok())
 	{
 		int x = waitKey(1);
 		ros::spinOnce();
-		iter++;
 		tree.traverse(br, broadcast_tf);
 		cap.read(frame);
 
 		//main function that proceeds only once
-		run_frame(frame, p, &tree, iter);
+		run_frame(frame, p, &tree);
 
 		imshow("frame", frame);
 	}
 }
 
-void run_frame(Mat frame, parameters* p, slam_tree* tree, int iter)
+void run_frame(Mat frame, parameters* p, slam_tree* tree)
 {
 	//aruco stoff
 	std::vector<std::vector<Point2f>> corners;
@@ -232,10 +234,7 @@ void run_frame(Mat frame, parameters* p, slam_tree* tree, int iter)
 	}
 
 	//Update camera 
-	if(iter % p->update_cam_interval == 0)
-	{
-		update_camera_transform(cam, cam_orientations, cam_locations, p->transform_confidence_tresh);
-	}	
+	update_camera_transform(cam, cam_orientations, cam_locations, p->transform_confidence_tresh);
 }
 
 void relocalize_marker(slam_obj* marker, slam_obj* camera, tf::Quaternion R_cm, tf::Vector3 T_cm)
@@ -282,7 +281,7 @@ std::tuple<tf::Quaternion, tf::Vector3>  estimate_cam_transform(tf::Quaternion R
 	return std::make_tuple(R_wc, T_wc);
 }
 
-slam_obj *create_camera()
+slam_obj *create_camera(float raw, float pitch, float yaw)
 {
 	slam_obj *camera = new slam_obj;
 	//we assumed that all markers have positive id.
@@ -292,7 +291,7 @@ slam_obj *create_camera()
 	camera->name = "c922";
 	//the initial rotation and position of the camera can be changed 
 	//but not recommended
-	camera->R.setRPY(PI/2, PI, 0);
+	camera->R.setRPY(raw, pitch, yaw);
 	camera->T = tf::Vector3(0, 0, 0);
 	camera->left = NULL;
 	camera->right = NULL;
@@ -367,3 +366,5 @@ void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, s
 }
 
 }
+
+#endif
