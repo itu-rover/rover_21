@@ -105,7 +105,7 @@ void broadcast_tf(tf::TransformBroadcaster br, slam_obj *obj);
 	current and new camera transform is in bellow limit we will 
 	ignore new transform
 */
-void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, std::vector<tf::Vector3> tv, float tresh);
+void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, std::vector<tf::Vector3> tv);
 
 
 /*
@@ -234,7 +234,7 @@ void run_frame(Mat frame, parameters* p, slam_tree* tree)
 	}
 
 	//Update camera 
-	update_camera_transform(cam, cam_orientations, cam_locations, p->transform_confidence_tresh);
+	update_camera_transform(cam, cam_orientations, cam_locations);
 }
 
 void relocalize_marker(slam_obj* marker, slam_obj* camera, tf::Quaternion R_cm, tf::Vector3 T_cm)
@@ -310,7 +310,7 @@ void broadcast_tf(tf::TransformBroadcaster br, slam_obj *obj)
 	br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), FIXED_FRAME, obj->name));
 }
 
-void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, std::vector<tf::Vector3> tv, float tresh)
+void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, std::vector<tf::Vector3> tv)
 {	
 	tf::Quaternion R = camera->R;
 	tf::Vector3 T = camera->T;
@@ -327,7 +327,7 @@ void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, s
 		return;
 	}
 
-	float minDot = R.dot(qv[0]);
+	float maxDot = R.dot(qv[0]);
 	float minDis = T.distance(tv[0]);
 
 	tf::Quaternion qMin = qv[0];
@@ -337,9 +337,9 @@ void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, s
 	{
 		float dot = R.dot(q);
 
-		if(dot < minDot)
+		if(dot > maxDot)
 		{
-			minDot = dot;
+			maxDot = dot;
 			qMin = q;
 		}
 	}
@@ -355,14 +355,9 @@ void update_camera_transform(slam_obj* camera, std::vector<tf::Quaternion> qv, s
 		}
 	}
 
-	float dot = qMin.dot(camera->R);
-	float dis = tMin.distance(camera->T);
-
-	if(dot < tresh && dis < tresh) 
-	{
-		camera->R = qMin;
-		camera->T = tMin;
-	}
+	camera->R = qMin;
+	camera->T = tMin;
+	
 }
 
 }

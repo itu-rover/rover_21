@@ -2,12 +2,14 @@
 #include <image_transport/image_transport.h>
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/CameraInfo.h>
 
 
 class CameraPub
 {
 public:
   	image_transport::Publisher color_pub, gray_pub;
+  	ros::Publisher info_pub;
 
 	bool gray; 
 	std::string name;
@@ -15,12 +17,20 @@ public:
 	
 	CameraPub();
 	void main();
+	void pub_image();
+	void pub_info();
 };
 
 CameraPub::CameraPub()
 {
 	ros::NodeHandle nh("~");
 	bool success = true;
+
+	//creating camera info msg
+	
+
+
+	//creating image publisher
 
 	// private params
 	success = nh.getParam("gray", gray);
@@ -56,9 +66,6 @@ CameraPub::CameraPub()
 	ROS_INFO("Initialization completed. we shall begin publishing");
 	ROS_INFO_STREAM("Convert to gray: " << gray);
 
-	//creating camera info msg
-
-
 	//we shall begin publishing
 	main();
 }
@@ -69,23 +76,34 @@ void CameraPub::main()
 
 	while(ros::ok() && cap.isOpened())
 	{
-		cv::Mat image;
-		cap.read(image);
-
-		if(gray)
-		{	
-			cv::Mat gray_image;
-			cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
-			sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray_image).toImageMsg();
-			gray_pub.publish(msg);		
-		}
-
-		sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
-		color_pub.publish(msg);
-
+		pub_image();
+		pub_info();
+		
     	ros::spinOnce();
     	loop_rate.sleep();
 	}
+}
+
+void CameraPub::pub_image()
+{
+	cv::Mat image;
+	cap.read(image);
+
+	if(gray)
+	{	
+		cv::Mat gray_image;
+		cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
+		sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray_image).toImageMsg();
+		gray_pub.publish(msg);
+	}
+
+	sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
+	color_pub.publish(msg);
+}
+
+void CameraPub::pub_info()
+{
+
 }
 
 

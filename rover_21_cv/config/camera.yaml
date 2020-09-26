@@ -1,13 +1,16 @@
 camera:
-  color_topic: "/camera/color"
-  gray_topic: "/camera/gray"
-  param_topic: "/camera/params"
+  color_topic: "/rover_camera/color"
+  gray_topic: "/rover_camera/gray"
+  info_topic: "/rover_camera/info"
 
 c922:
-  params:
+  width: 640
+  height: 480
+  distortion_model: "plumb_bob"
+  K:
     fx: 627.2
     fy: 630.6
     cx: 295
     cy: 237.1
-    k: [0.02, -0.114, 0.004, -0.017, 0.13]
-    
+  D: [0.02, -0.114, 0.004, -0.017, 0.13]
+  
