@@ -19,6 +19,12 @@ public:
     	cv::Mat frame = cv_ptr->image;
     	
     	int tags = tracker.run_frame(frame);
+
+    	if(tags > 0)
+    	{
+    		ROS_INFO_STREAM("FOUND ARTAG: " << tags);
+    	}
+
     	//TODO: add launch arg for imshow
 		int x = waitKey(1);
 		imshow("frame", frame);
