@@ -6,9 +6,12 @@
 namespace ArTracker
 {
 
+#define FRAME_ONE_TIME "tracker"
+
 class OneTimeTracker
 {
 public:
+	tf::TransformBroadcaster br;
 	parameters* p;
 
 	//they store last findings of tracking.
@@ -19,8 +22,10 @@ public:
 
 	OneTimeTracker();
 	void reset_vecs();
+	void broadcast_tf();
+	void run_aruco(Mat);
 	bool get_artag_transform(int, tf::Vector3, tf::Quaternion);
-	int run_frame(Mat);
+	int run_frame(Mat, bool=true);
 
 };
 
@@ -51,19 +56,51 @@ bool OneTimeTracker::get_artag_transform(int id, tf::Vector3 T, tf::Quaternion R
 /*
 	run aruco for one time. No global tracking is here 
 	simple use for approaching(for now)
+	This is main function which will be used by end user
 
 	input:
 		-frame: input bgr image
+		-broadcast: indicates if we want to publish tf (true by default)
 
 	output:
 		-int: number of tags we have found
 
 */
-int OneTimeTracker::run_frame(Mat frame)
+int OneTimeTracker::run_frame(Mat frame, bool broadcast)
 {
 	reset_vecs();
 
 	//aruco stuff
+	run_aruco(frame);
+
+	if (broadcast)
+	{
+		broadcast_tf();
+	}
+
+	return ids.size();
+}
+
+void OneTimeTracker::broadcast_tf()
+{
+	for(int i = 0, n = Tvec.size(); i < n; i++)
+	{
+		tf::Transform transform;
+		transform.setOrigin(Tvec[i]);
+		transform.setRotation(Rvec[i]);
+		br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), FRAME_ONE_TIME, std::to_string(ids[i])));
+	}
+}
+
+/*
+	runs aruco libary function. core functionality lies
+	in here
+
+	inputs:
+		-frame: input bgr image 
+*/
+void OneTimeTracker::run_aruco(Mat frame)
+{
 	std::vector<std::vector<Point2f>> corners;
 	std::vector<Vec3d> rvecs, tvecs;
 
@@ -91,8 +128,6 @@ int OneTimeTracker::run_frame(Mat frame)
 			Rvec.push_back(R);
 		}
 	}
-
-	return ids.size();
 }
 
 }

@@ -19,22 +19,7 @@ public:
     	cv::Mat frame = cv_ptr->image;
     	
     	int tags = tracker.run_frame(frame);
-
-    	for(int i = 0; i < tags; i++)
-    	{
-    		int id = tracker.ids[i];
-    		tf::Vector3 T = tracker.Tvec[i];
-    		tf::Quaternion R = tracker.Rvec[i];
-
-    		R = R * Rcam;
-    		T = tf::Matrix3x3(Rcam) * T;
-    		
-    		ROS_INFO_STREAM(id<< " -> "<< R[0] << R[1] << R[2] << R[3]);
-
-    		broadcast_tf(id, T, R);
-    	}
-
-
+    	//TODO: add launch arg for imshow
 		int x = waitKey(1);
 		imshow("frame", frame);
 	}
@@ -52,13 +37,6 @@ public:
 		ros::spin();
 	}
 
-	void broadcast_tf(int id, tf::Vector3 T, tf::Quaternion R)
-	{
-		tf::Transform transform;
-		transform.setOrigin(T);
-		transform.setRotation(R);
-		br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), FIXED_FRAME, std::to_string(id)));
-	}
 };
 
 

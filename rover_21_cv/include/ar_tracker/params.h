@@ -14,6 +14,10 @@ namespace ArTracker
 	parameter struct for all adjustable params of 
 	the system
 
+	- update_cam_interval: determines how often we will update the camera
+	it created for reducing noise in localization
+	- transform_confidende_tresh: it is tresh value for update_camera_transform()
+	function look respective functionn for details
 	- aruco_params: parameters for aruco detection that made by aruco libary
 	- aruco_dictionary: it contains all marker codes that we want to detect
 	it is built-in data type in aruco libary just like aruco_parameters
@@ -31,6 +35,8 @@ namespace ArTracker
 */
 struct parameters
 {
+	int update_cam_interval; //NOTE: this feature removed for now(24.10.2020) i may delete it later
+	float transform_confidence_tresh; 
 	Ptr<DetectorParameters> aruco_params;
 	Ptr<Dictionary> aruco_dictionary;
 	float marker_size;
@@ -48,6 +54,8 @@ parameters *create_parameters()
 {
 	parameters *p = new parameters;
 
+	p->update_cam_interval = 1;
+	p->transform_confidence_tresh = 0.3;
 	p->marker_size = 0.2;
 	p->aruco_params = DetectorParameters::create();
 	p->aruco_dictionary = getPredefinedDictionary(DICT_5X5_250);
