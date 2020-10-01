@@ -1,3 +1,5 @@
+#ifndef SLAM_TREE_H
+#define SLAM_TREE_H
 
 namespace ArTracker
 {
@@ -22,6 +24,7 @@ struct slam_obj
 	slam_obj *right;
 };
 
+
 /*
 	Interface class between system and data structure
 */
@@ -31,11 +34,14 @@ class slam_tree
 	slam_obj* add_(slam_obj*, slam_obj*);
 	slam_obj* search_id_(slam_obj*, int);
 	void traverse_(slam_obj*, tf::TransformBroadcaster, void (*action)(tf::TransformBroadcaster, slam_obj*));
+	void delete_(slam_obj*);
+	void deallocate(slam_obj*);
 
 public:
 	slam_tree();
 	void add(slam_obj*);
 	void traverse(tf::TransformBroadcaster, void (*action)(tf::TransformBroadcaster, slam_obj*));
+	void reset(); 
 	slam_obj* search_id(int);
 };
 
@@ -64,6 +70,11 @@ void slam_tree::traverse(tf::TransformBroadcaster br, void (*action)(tf::Transfo
 {
 	if (root != NULL)
 		traverse_(root, br, action);
+}
+
+void slam_tree::reset()
+{
+	delete_(root);
 }
 
 
@@ -106,4 +117,33 @@ void slam_tree::traverse_(slam_obj* root, tf::TransformBroadcaster br, void (*ac
 		traverse_(root->left, br, action);
 }
 
+void slam_tree::delete_(slam_obj* obj)
+{
+	if(obj == NULL)
+		return;
+
+	delete_(obj->left);
+	delete_(obj->right);
+
+	if(obj->id != -1)
+	{
+		deallocate(obj);
+	}
 }
+
+/*
+	deallocate obj from memeory
+	if we change construct we must change this as well
+*/ 
+void slam_tree::deallocate(slam_obj* obj)
+{
+	delete &(obj->id);
+	delete &(obj->name);
+	delete &(obj->T);
+	delete &(obj->R);
+	delete obj;
+}
+
+}
+
+#endif

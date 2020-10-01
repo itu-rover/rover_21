@@ -1,3 +1,6 @@
+#ifndef PARAMS_H
+#define PARAMS_H
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
 
@@ -24,6 +27,7 @@ namespace ArTracker
 
 	mtx: 3x3 camera matrix
 	dist: cameras distortion coefficents
+	marker_size: artag size in meters. (URC config is 20 cm)
 
 	default values of dist and mtx are made for logitech c922
 	hence I recommend to change values for different camera 
@@ -31,10 +35,11 @@ namespace ArTracker
 */
 struct parameters
 {
-	int update_cam_interval;
+	int update_cam_interval; //NOTE: this feature removed for now(24.10.2020) i may delete it later
 	float transform_confidence_tresh; 
 	Ptr<DetectorParameters> aruco_params;
 	Ptr<Dictionary> aruco_dictionary;
+	float marker_size;
 	Mat dist;
 	Mat mtx;
 };
@@ -49,8 +54,9 @@ parameters *create_parameters()
 {
 	parameters *p = new parameters;
 
-	p->update_cam_interval = 5;
+	p->update_cam_interval = 1;
 	p->transform_confidence_tresh = 0.3;
+	p->marker_size = 0.2;
 	p->aruco_params = DetectorParameters::create();
 	p->aruco_dictionary = getPredefinedDictionary(DICT_5X5_250);
 	
@@ -68,3 +74,5 @@ parameters *create_parameters()
 }  	
 
 }
+
+#endif
