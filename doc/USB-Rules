@@ -1,0 +1,39 @@
+USB noları sabitleme
+
+1. yol
+
+lsusb ile Bus ve device noyu al.
+
+udevadm info -a -p $(udevadm info -q path -n /dev/bus/usb/002/087)  burdan ATTR yazan noyu al
+
+
+sudo gedit /etc/udev/rules.d/10-local.rules
+
+ SUBSYSTEMS=="usb", ATTRS{serial}=="A50285BI", GROUP="users", SYMLINK+="imu" ATTR yerine noyu yaz. Symlink içine usb'ni isimlendir.
+
+2. yol 
+
+
+udevadm info -a -n /dev/ttyUSB0 | grep '{serial}'
+
+ATTR{idVendor}=="067b"
+----
+
+
+sudo /etc/init.d/udev restart 
+portu donanımsal olarak çıkarıp tak.
+
+kontrol için
+ls -lF /dev | grep imu
+
+A50285BI"
+artık serialı dev/ttyUSBx yerine dev/imu olarak sabit adlandırdık.
+
+----
+
+udevadm info -a -n /dev/input/js0 | grep '{serial}' == yaparak bağlı olan joysticklerin seriallerini görürüz.
+
+
+
+ 
+
