@@ -47,3 +47,6 @@ target_link_libraries(camera_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable(approaching_engine src/approaching_engine.cpp)
 target_link_libraries(approaching_engine ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable(aruco_tracking src/aruco_tracking.cpp)
+target_link_libraries(aruco_tracking ${catkin_LIBRARIES} ${OpenCV_LIBS})

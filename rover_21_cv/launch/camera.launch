@@ -3,7 +3,7 @@
 <launch>
 	<arg name="camera" default="c922" />
 	<arg name="gray" default="false" />
-	<arg name="cap_id" default="1" />
+	<arg name="cap_id" default="0" />
 
 	<rosparam file="$(find rover_21_cv)/config/camera.yaml" command="load" />
 
