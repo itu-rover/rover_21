@@ -8,11 +8,12 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  OpenCV
   tf
   image_transport
   cv_bridge
 )
+
+find_package(OpenCV REQUIRED)
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
