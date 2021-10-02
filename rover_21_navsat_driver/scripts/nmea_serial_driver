@@ -38,12 +38,12 @@ import rospy
 
 import libnmea_navsat_driver.driver
 
-if __name__ == '__main__':
-    rospy.init_node('nmea_serial_driver')
+if __name__ == "__main__":
+    rospy.init_node("nmea_serial_driver")
 
-    serial_port = rospy.get_param('~port','/dev/ttyUSB0')
-    serial_baud = rospy.get_param('~baud',4800)
-    frame_id = "gps_link" #libnmea_navsat_driver.driver.RosNMEADriver.get_frame_id()
+    serial_port = rospy.get_param("~port", "/dev/ttyUSB0")
+    serial_baud = rospy.get_param("~baud", 4800)
+    frame_id = "gps_link"  # libnmea_navsat_driver.driver.RosNMEADriver.get_frame_id()
 
     try:
         GPS = serial.Serial(port=serial_port, baudrate=serial_baud, timeout=2)
@@ -53,7 +53,10 @@ if __name__ == '__main__':
             try:
                 driver.add_sentence(data, frame_id)
             except ValueError as e:
-                rospy.logwarn("Value error, likely due to missing fields in the NMEA message. Error was: %s. Please report this issue at github.com/ros-drivers/nmea_navsat_driver, including a bag file with the NMEA sentences that caused it." % e)
+                rospy.logwarn(
+                    "Value error, likely due to missing fields in the NMEA message. Error was: %s. Please report this issue at github.com/ros-drivers/nmea_navsat_driver, including a bag file with the NMEA sentences that caused it."
+                    % e
+                )
 
     except rospy.ROSInterruptException:
-        GPS.close() #Close GPS serial port
+        GPS.close()  # Close GPS serial port

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com)
      Commit Version: 1.6.0-1-g15f4949  Build Version: 1.6.7594.29634
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
@@ -256,7 +256,7 @@
     <axis
       xyz="0 0 1" />
   </joint>
-	
+
   <transmission name="left_front_trans" type="SimpleTransmission">
     <type>transmission_interface/SimpleTransmission</type>
     <actuator name="left_front_motor">
@@ -313,7 +313,7 @@
       <accelGaussianNoise>0.005 0.005 0.005</accelGaussianNoise>
       <rateDrift>0.005 0.005 0.005 </rateDrift>
       <rateGaussianNoise>0.005 0.005 0.005 </rateGaussianNoise>
-      <headingDrift>0.005</headingDrift>[ERROR] [1555346159.311804930, 0.098000000]: 
+      <headingDrift>0.005</headingDrift>[ERROR] [1555346159.311804930, 0.098000000]:
       <headingGaussianNoise>0.005</headingGaussianNoise>
     </plugin>
   </gazebo>

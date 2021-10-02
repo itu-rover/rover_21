@@ -1,8 +1,8 @@
 <launch>
 <include file="$(find multimaster_launch)/launch/multimaster_gazebo_robot.launch">
     <arg name="robot_namespace" value="rover_21_description"/>
-  </include> 
- 
+  </include>
+
 <include
     file="$(find gazebo_ros)/launch/empty_world.launch" />
   <node
@@ -10,7 +10,7 @@
     pkg="tf"
     type="static_transform_publisher"
     args="0 0 0 0 0 0 base_link base_footprint 40" />
-  <param name="robot_description" command="cat $(find rover_21_description)/urdf/rover_21_description.urdf"/>  
+  <param name="robot_description" command="cat $(find rover_21_description)/urdf/rover_21_description.urdf"/>
 <node
     name="spawn_model"
     pkg="gazebo_ros"
@@ -34,6 +34,6 @@
   <node pkg="twist_mux" type="twist_mux" name="twist_mux">
     <rosparam command="load" file="$(find rover_21_description)/config/twist_mux.yaml" />
     <remap from="cmd_vel_out" to="/rover_velocity_controller/cmd_vel"/>
-  </node> 
+  </node>
 
 </launch>

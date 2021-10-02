@@ -15,7 +15,7 @@ Change log for nmea_navsat_driver package
 * Add debug logging output to the parser (PR #8, Mike Purvis)
 * Add queue size arguement to publishers to fix warning on Indigo (PR #9, Mike Purvis)
 * Add support for roslint and some related cleanup (PR #10, Mike Purvis)
- 
+
 0.4.0 (2014-05-04)
 -------------------
 * Initial release for Indigo

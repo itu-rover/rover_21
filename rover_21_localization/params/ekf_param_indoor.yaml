@@ -26,8 +26,8 @@ ekf_se_odom: # Used only for broadcasting odom to base_link transforms
   odom0_nodelay: true
   odom0_differential: false
   odom0_relative: false
-  
- 
+
+
   pose0:  /poseupdate
   pose0_config: [true,true,true,
                  false,false,false,
@@ -101,8 +101,3 @@ ekf_se_odom: # Used only for broadcasting odom to base_link transforms
                                 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     1.0,  0,    0,
                                 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    1.0,  0,
                                 0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    1.0]
-
-
-
-
-

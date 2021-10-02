@@ -6,4 +6,3 @@ SUBSYSTEMS=="usb", ATTRS{serial}=="A50285BI", GROUP="users", SYMLINK+="gps_itu"
 
 SUBSYSTEMS=="usb", ATTRS{serial}=="0000:00:14.0"
 ,ATTRS{manufacturer}=="Prolific Technology Inc.", GROUP="users", SYMLINK+="husky"
-

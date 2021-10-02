@@ -35,14 +35,15 @@ import time
 import calendar
 import math
 import logging
-logger = logging.getLogger('rosout')
+
+logger = logging.getLogger("rosout")
 
 
 def safe_float(field):
     try:
         return float(field)
     except ValueError:
-        return float('NaN')
+        return float("NaN")
 
 
 def safe_int(field):
@@ -66,7 +67,7 @@ def convert_time(nmea_utc):
     utc_list = list(utc_struct)
     # If one of the time fields is empty, return NaN seconds
     if not nmea_utc[0:2] or not nmea_utc[2:4] or not nmea_utc[4:6]:
-        return float('NaN')
+        return float("NaN")
     else:
         hours = int(nmea_utc[0:2])
         minutes = int(nmea_utc[2:4])
@@ -95,6 +96,7 @@ def convert_knots_to_mps(knots):
 def convert_deg_to_rads(degs):
     return math.radians(safe_float(degs))
 
+
 """Format for this is a sentence identifier (e.g. "GGA") as the key, with a
 tuple of tuples where each tuple is a field name, conversion function and index
 into the split sentence"""
@@ -110,7 +112,7 @@ parse_maps = {
         ("hdop", safe_float, 8),
         ("num_satellites", safe_int, 7),
         ("utc_time", convert_time, 1),
-        ],
+    ],
     "RMC": [
         ("utc_time", convert_time, 1),
         ("fix_valid", convert_status_flag, 2),
@@ -120,24 +122,27 @@ parse_maps = {
         ("longitude_direction", str, 6),
         ("speed", convert_knots_to_mps, 7),
         ("true_course", convert_deg_to_rads, 8),
-        ]
-    }
+    ],
+}
 
 
 def parse_nmea_sentence(nmea_sentence):
     # Check for a valid nmea sentence
-    if not re.match('(^\$GP|^\$GN|^\$GL).*\*[0-9A-Fa-f]{2}$', nmea_sentence):
-        logger.debug("Regex didn't match, sentence not valid NMEA? Sentence was: %s"
-                     % repr(nmea_sentence))
+    if not re.match("(^\$GP|^\$GN|^\$GL).*\*[0-9A-Fa-f]{2}$", nmea_sentence):
+        logger.debug(
+            "Regex didn't match, sentence not valid NMEA? Sentence was: %s"
+            % repr(nmea_sentence)
+        )
         return False
-    fields = [field.strip(',') for field in nmea_sentence.split(',')]
+    fields = [field.strip(",") for field in nmea_sentence.split(",")]
 
     # Ignore the $ and talker ID portions (e.g. GP)
     sentence_type = fields[0][3:]
 
     if not sentence_type in parse_maps:
-        logger.debug("Sentence type %s not in parse map, ignoring."
-                     % repr(sentence_type))
+        logger.debug(
+            "Sentence type %s not in parse map, ignoring." % repr(sentence_type)
+        )
         return False
 
     parse_map = parse_maps[sentence_type]

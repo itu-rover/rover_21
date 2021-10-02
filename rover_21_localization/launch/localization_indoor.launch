@@ -2,6 +2,6 @@
 <launch>
 
   <rosparam command="load" file="$(find rover_21_localization)/params/ekf_param_indoor.yaml" />
-  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true"/>   
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true"/>
 
 </launch>

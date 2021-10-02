@@ -1,7 +1,7 @@
 navsat_transform:
   frequency: 30
   delay: 3.0
-  magnetic_declination_radians: 0.0015446163880 
+  magnetic_declination_radians: 0.0015446163880
   yaw_offset: 1.5708 #for when the north is zero /make east zero
   zero_altitude: true
   broadcast_utm_transform: true

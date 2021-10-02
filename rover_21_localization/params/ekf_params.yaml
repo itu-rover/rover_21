@@ -28,7 +28,7 @@ ekf_se_odom: # Used only for broadcasting odom to base_link transforms
   odom0_nodelay: true
   odom0_differential: false
   odom0_relative: false
-  
+
 
 # -------------------------------------
 # Laser scanmatching odometry:
@@ -120,7 +120,7 @@ ekf_se_map:
   odom0_nodelay: true
   odom0_differential: false
   odom0_relative: false
-  
+
 # -------------------------------------
 # GPS odometry:
 
