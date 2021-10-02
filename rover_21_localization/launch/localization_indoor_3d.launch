@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-  <group ns="indoor_nav"> 
+  <group ns="indoor_nav">
   <rosparam command="load" file="$(find rover_21_localization)/params/ekf_params_indoor_3d.yaml" />
- 
+
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true"/>
 
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_map" clear_params="true">

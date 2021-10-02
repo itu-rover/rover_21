@@ -2,10 +2,10 @@
 <launch>
 
 
-  <group ns="itu_rover"> 
+  <group ns="itu_rover">
   <rosparam command="load" file="$(find rover_21_localization)/params/ekf_params.yaml" />
   <rosparam command="load" file="$(find rover_21_localization)/params/navsat_params_sim.yaml" />
- 
+
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true"/>
 
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_map" clear_params="true">
@@ -16,7 +16,7 @@
       <remap from="odometry/filtered" to="odometry/filtered_map"/>
       <remap from="gps/fix" to="/gps/fix"/>
       <remap from="imu/data" to="/imu/data"/>
-     
+
   </node>
   </group>
 

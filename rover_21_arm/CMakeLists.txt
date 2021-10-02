@@ -154,7 +154,7 @@ target_link_libraries(forward_kinematics ${catkin_LIBRARIES})
 
 add_executable(keyboard_joy_teleop scripts/keyboard_joy_teleop.cpp)
 target_link_libraries(keyboard_joy_teleop ${catkin_LIBRARIES})
-target_link_libraries(keyboard_joy_teleop ${CMAKE_THREAD_LIBS_INIT}) 
+target_link_libraries(keyboard_joy_teleop ${CMAKE_THREAD_LIBS_INIT})
 
 
 ## Rename C++ executable without prefix

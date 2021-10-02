@@ -5,4 +5,4 @@ frame_id: imu_link
 # Data reading frequency
 frequency: 1
 # Sensor operation mode --> modes could be found in sensor datasheet
-operation_mode: 0x12 
+operation_mode: 0x12

@@ -71,7 +71,7 @@ namespace HERO_Serial_Example10
 
                 Watchdog.Feed();
             }
-                                                                     
+
         }
     }
 }

@@ -11,7 +11,7 @@ sudo gedit /etc/udev/rules.d/10-local.rules
 
  SUBSYSTEMS=="usb", ATTRS{serial}=="A50285BI", GROUP="users", SYMLINK+="imu" ATTR yerine noyu yaz. Symlink içine usb'ni isimlendir.
 
-2. yol 
+2. yol
 
 
 udevadm info -a -n /dev/ttyUSB0 | grep '{serial}'
@@ -20,7 +20,7 @@ ATTR{idVendor}=="067b"
 ----
 
 
-sudo /etc/init.d/udev restart 
+sudo /etc/init.d/udev restart
 portu donanımsal olarak çıkarıp tak.
 
 kontrol için
@@ -32,8 +32,3 @@ artık serialı dev/ttyUSBx yerine dev/imu olarak sabit adlandırdık.
 ----
 
 udevadm info -a -n /dev/input/js0 | grep '{serial}' == yaparak bağlı olan joysticklerin seriallerini görürüz.
-
-
-
- 
-

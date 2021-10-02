@@ -21,7 +21,7 @@ install(DIRECTORY src
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-catkin_install_python(PROGRAMS 
+catkin_install_python(PROGRAMS
 	nodes/bosch_imu_node.py
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/nodes
 )

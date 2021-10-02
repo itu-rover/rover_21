@@ -2,15 +2,15 @@
 <launch>
 
      <node pkg="rover_21_navsat_driver" type="nmea_serial_driver" name="nmea_node_1">
-   
+
       <param name="baud" value="230400"/> <!--230400-->
       <param name="port" value="/dev/ttyUSB0"/>
       <param name="frame_id" value="gps_link"/>
       <remap from="/fix" to="/gps/fix" />
- 
+
   </node>
    <node name="base_link_to_gps"
-			pkg="tf" type="static_transform_publisher" 
+			pkg="tf" type="static_transform_publisher"
 			args="0.4 -0.3 0.0 0.0 0.0 0.0 base_link gps_link 20" />
 
 

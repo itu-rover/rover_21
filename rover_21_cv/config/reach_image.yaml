@@ -6,7 +6,7 @@ RoverReachImage:
         resize_width: 1200 #only works when resize true
         resize_height: 800 #only woerks when resize true
         direction: '/artag_direction'
-        
+
 
     CalculateBearing:
         sub_pxCoordinates: '/px_coordinates'

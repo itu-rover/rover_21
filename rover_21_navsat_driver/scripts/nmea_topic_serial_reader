@@ -39,16 +39,16 @@ import rospy
 from nmea_msgs.msg import Sentence
 from libnmea_navsat_driver.driver import RosNMEADriver
 
-if __name__ == '__main__':
-    rospy.init_node('nmea_topic_serial_reader')
+if __name__ == "__main__":
+    rospy.init_node("nmea_topic_serial_reader")
 
     nmea_pub = rospy.Publisher("nmea_sentence", Sentence)
 
-    serial_port = rospy.get_param('~port','/dev/ttyUSB0')
-    serial_baud = rospy.get_param('~baud',4800)
+    serial_port = rospy.get_param("~port", "/dev/ttyUSB0")
+    serial_baud = rospy.get_param("~baud", 4800)
 
     # Get the frame_id
-    frame_id = "gps_link" #RosNMEADriver.get_frame_id()
+    frame_id = "gps_link"  # RosNMEADriver.get_frame_id()
 
     try:
         GPS = serial.Serial(port=serial_port, baudrate=serial_baud, timeout=2)
@@ -57,10 +57,10 @@ if __name__ == '__main__':
 
             sentence = Sentence()
             sentence.header.stamp = rospy.get_rostime()
-	    sentence.header.frame_id = frame_id
+            sentence.header.frame_id = frame_id
             sentence.sentence = data
 
             nmea_pub.publish(sentence)
 
     except rospy.ROSInterruptException:
-        GPS.close() #Close GPS serial port
+        GPS.close()  # Close GPS serial port
