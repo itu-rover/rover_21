@@ -1,0 +1,17 @@
+ServoCamera:
+  pub_topic_scam:
+    pub_servo_angle : '/servo_angle' 
+    pub_servodone : '/servodone'
+
+  sub_topic_scam:
+    sub_control : '/servo_control' # 2 bit, 1.rotate 2.seeing artag
+
+
+  Baudrate:
+    baudrate: '19200'
+
+
+  ports:
+    servoport : '/dev/ttyUSB2'
+
+

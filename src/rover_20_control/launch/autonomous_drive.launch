@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+	<rosparam file="$(find rover_20_control)/config/autonomous.yaml" command="load"/>
+
+	<node pkg="rover_20_control" type="autonomous_20.py" name="autonomous_drive" output="screen"/>
+</launch>

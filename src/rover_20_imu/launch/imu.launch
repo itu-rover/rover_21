@@ -1,0 +1,21 @@
+<launch>
+
+  <!-- Run Bosch BNO055 IMU -->
+  <arg name="bosch_config_file" default="$(find bosch_imu_driver)/config/imu_bosch.yaml"/>
+  <node pkg="bosch_imu_driver" type="bosch_imu_node.py" name="bosch_imu_node" output="screen">
+    <rosparam file="$(arg bosch_config_file)" command="load"/>
+    <remap from="/imu/data" to="/imu/data_raw"/>
+    <remap from="/imu/raw" to="/imu/raw"/>
+    <remap from="/imu/temp" to="/imu/temp"/>
+    <remap from="/imu/mag" to="/imu/mag"/>
+  </node>
+
+  <node pkg="rover_21_control" type="normalizer.py" name="normalizer">
+  </node>
+	<!-- IMU Bosh transformation publisher -->
+	<!--<node name="base_link_to_imu_bosch"
+			pkg="tf" type="static_transform_publisher"
+			args="-0.1 0.25 0.0 0.0 0.0 0.0 base_link imu_link 200" />-->
+</launch>
+
+

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+  	<!--include
+    	file="$(find rover_20_localization)/launch/localization.launch">
+  	</include-->
+
+	<node pkg="rover_20_control" type="rover_odom.py" name="odometry_node"/>
+	<node pkg="rover_20_control" type="plannerv2.py" name="autonomous_node" output="screen"/>
+	<!--arg name="rviz" value="true"/-->
+  	<!--node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" args="-d $(find rover_20_control)/config/rviz/simulation.rviz" /-->
+  	
+</launch>

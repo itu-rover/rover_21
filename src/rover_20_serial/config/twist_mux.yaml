@@ -1,0 +1,18 @@
+topics:
+- name    : navigation
+  topic   : /nav_vel
+  timeout : 0.5
+  priority: 10
+- name    : joystick
+  topic   : /joy_teleop/cmd_vel
+  timeout : 0.5
+  priority: 100
+- name    : robot_steering
+  topic   : /rqt_vel
+  timeout : 0.5
+  priority: 90
+locks:
+  - name    : e_stop
+    topic   : e_stop
+    timeout : 0.0
+    priority: 255

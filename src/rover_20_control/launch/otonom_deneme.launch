@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<launch>
+
+	<arg name = "husky" value = "true"/>
+	<arg name = "localization" value = "false"/>
+	<arg name = "move_base" value = "false"/>
+	<arg name = "smach" value = "false"/>
+	<arg name = "waypoint" value = "false"/>
+
+	<group if = "$(arg husky)">
+		<include file = "$(find husky_gazebo)/launch/husky_empty_world.launch"/>
+		<arg name = "husky" value = "false"/>
+	</group>
+
+	<group if = "$(arg localization)">
+		<include file = "$(find rover_19_localization)/launch/localization.launch"/>
+	</group>
+
+	<group if = "$(arg move_base)">
+		<include file = "$(find rover_19_navigation)/launch/move_base.launch"/>
+	</group>
+
+	<group if = "$(arg smach)">
+		<include file = "$(find rover20_state_mach)/launch/rover_smach.launch"/>
+	</group>
+
+	<group if = "$(arg waypoint)">
+		<include file = "$(find rover_19_waypoint_nav)/launch/outdoor/outdoor_waypoint_nav.launch"/>
+	</group>
+
+</launch>

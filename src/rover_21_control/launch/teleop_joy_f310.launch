@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<launch>
+
+ <!-- joy node -->
+<arg name="joystick" default="true"/>
+<arg name="joy_dev" default="/dev/input/js0"/>
+
+ <rosparam command="load" file="$(find rover_21_control)/config/teleop.yaml"/>
+  <node respawn="true" pkg="joy"
+        type="joy_node" name="joy_node_1" >
+    <param name="deadzone" value="0.05" />
+    <param name="autorepeat_rate" value="30.0"/>
+  </node>
+
+ <!-- Axes -->
+  <!-- <param name="axis_linear" value="1" type="int"/> -->
+  <!-- <param name="axis_angular" value="0" type="int"/> -->
+  <!-- <param name="kill" value="4" type="int"/> -->
+  <!-- <param name="turbo" value="5" type="int"/>  -->
+  <!-- <param name="turbo_scale" value="2" type="double"/> -->
+
+  <!-- <node pkg="rover_21_control" type="teleop_joy_20.py" name="teleop_joy_20" output="screen"/> -->
+<node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twist_joy">
+<remap from="cmd_vel" to="/joy_teleop/cmd_vel"/>
+<param name="axis_linear" value="1"/>
+<param name="axis_angular" value="0"/>
+<param name="scale_angular" value="1.15"/>
+<param name="scale_angular_turbo" value="1.50"/>
+
+
+</node>
+  <!--node pkg="rover_21_control" type="mobile_base_cmd_sub_main.py" name="mobile_base_cmd_sub_main"/-->
+   
+<!-- shovel sub-->
+  <!--node pkg="rover_21_control" type="mobile_base_shovel_sub.py" name="mobile_base_shovel_sub" /-->
+<!-- led sub -->
+  <!--node pkg="rover_21_control" type="led_sub.py" name="led_sub"/-->
+
+</launch>

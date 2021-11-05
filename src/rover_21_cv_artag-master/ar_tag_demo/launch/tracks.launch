@@ -1,0 +1,5 @@
+<launch>
+ <include file="$(find ar_tag_demo)/launch/track_left.launch" />
+ <include file="$(find ar_tag_demo)/launch/track_right.launch" />
+ <include file="$(find ar_tag_demo)/launch/track_rs.launch" />
+</launch>

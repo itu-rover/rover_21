@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+
+   <include file="$(find rover_19_localization)/launch/localization.launch"/>
+   <!--include file="$(find rover_imu)/launch/imu.launch"/-->
+   <!--node name="fake_odom" pkg="rover_19_simulator" type="velocity_odom_simulation.py"/-->
+</launch>

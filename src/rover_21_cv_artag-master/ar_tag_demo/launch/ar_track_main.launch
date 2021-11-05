@@ -1,0 +1,7 @@
+<launch>
+ <include file="$(find ar_tag_demo)/launch/side_cams.launch" />
+ <include file="$(find ar_tag_demo)/launch/tracks.launch" />
+
+</launch>
+
+

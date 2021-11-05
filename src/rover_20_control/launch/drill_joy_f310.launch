@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<launch>
+
+ <!-- joy node -->
+  <node respawn="true" pkg="joy"
+        type="joy_node" name="joy_node_3" >
+    <param name="dev" type="string" value="/dev/input/js1" />
+    <param name="deadzone" value="0.12" />
+    <remap from="/joy" to="/joy_drill"/>
+  </node>
+
+ <!-- Axes -->
+ 
+  <param name="axes_1" value="1" type="int"/>
+  <param name="axes_2" value="4" type="int"/>
+
+  <param name="switch_1" value="4" type="int"/>
+  <param name="switch_2" value="2" type="int"/>
+  <param name="switch_3" value="5" type="int"/>
+  <param name="switch_4" value="5" type="int"/>
+  <param name="X" value="2" type="int"/>
+  <param name="Y" value="3" type="int"/>
+  <param name="B" value="1" type="int"/>
+  <param name="A" value="0" type="int"/>
+
+  <param name="turbo" value="3.0" type="double"/>
+  <node pkg="rover_20_control" type="drill_joy_f310" name="drill_joy_f310"/>
+   <node pkg="rover_20_control" type="rover_drill_sub.py" name="rover_drill_sub" output="screen"/>
+</launch>

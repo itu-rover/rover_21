@@ -1,0 +1,42 @@
+#Movement parameters
+movement:
+  turn_speed: 0.8 #Rotation speed
+  yaw_turn_rate_max: 15
+  yaw_turn_rate_min: 10 
+  yaw_angle_error_divider: 36 #pi / yaw_angle_error_divider
+  goal_reach_thresh: 1.0 #Threshold to publish success
+
+#Rover physical parameters
+vehicle:
+  wheel:
+    radius: 0.15 #Radius of wheel
+    reduction: 500 #Reduction rate of wheel motor
+    dist: 1 #Distance between wheels
+  body:
+    width: 0.95 #Width of vehicle with wheels
+    length: 1.10 #Length of vehicle with wheels
+
+#Lidar parameters:
+lidar:
+  lidar_angle: 15 #Obstacle detect range from front point
+  lidar_min_scan_angle: -90 #Default -90
+  lidar_max_scan_angle: 90 #Default 90
+  lidar_angle_increment: 314.16 #5 digits of pi x 100
+  obstacle_range: 2.25 #Minimum distance to obstacle in order to detect it
+
+empty_spaces:
+  empty_space_points: 10 #Minimum amount of empty points to count it as empty space
+  print_empty_spaces: True #If True, prints empty spaces found
+  turn_to_space: True #If True, rotates through empty spaces
+  min_angle: -45 #Minimum angle to check for empty space tracking ##Range for minimum 10 meter scan range: -72.5
+  max_angle: 45 #Maximum angle to check for empty space tracking ##Range for maximum 10 meter scan range: 72.5
+  empty_space_noise_tolerance: 2 #Maximum number of points that can be seen due to noise
+  empty_space_pass_tolerance: 0.3 #Distance tolerance while passing from empty space
+ 
+#Publisher and subscriber topics
+topics:
+  twist_pub_topic: /cmd_vel
+  gps_sub_topic: /gps/fix
+  lidar_sub_topic: /scan
+  imu_sub_topic: /imu/data
+  odom_sub_topic: /odometry/filtered_map

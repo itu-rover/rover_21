@@ -1,0 +1,28 @@
+topics:
+# Waypoints navigation control
+- name    : nav_cmd_vel
+  topic   : /cmd_vel
+  timeout : 0.5
+  priority: 1
+- name    : joy
+  topic   : /joy_teleop/cmd_vel
+  timeout : 0.5
+  priority: 10
+- name    : server
+  topic   : /cmd_vel_manual
+  timeout : 0.5
+  priority: 6
+- name    : safety_test
+  topic   : /cmd_vel_safe
+  timeout : 0.5
+  priority: 2
+- name    : interactive_marker
+  topic   : twist_marker_server/cmd_vel
+  timeout : 0.5
+  priority: 8
+locks:
+# Manual stop command
+- name    : e_stop
+  topic   : e_stop
+  timeout : 0.0
+  priority: 255

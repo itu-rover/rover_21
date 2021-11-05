@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+   <node pkg="rover_20_control" type="rover_shovel_sub.py" name="rover_shovel_sub" output="screen"/>
+   <node pkg="rover_20_control" type="led_sub.py" name="led_sub"/>
+
+
+</launch>

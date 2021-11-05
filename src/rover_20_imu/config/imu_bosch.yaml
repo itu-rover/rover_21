@@ -1,0 +1,11 @@
+# USB port
+port: /dev/ttyUSB1
+# Tf frame id
+frame_id: base_link
+# Data reading frequency
+frequency: 50
+# Sensor operation mode --> modes could be found in sensor datasheet
+operation_mode: 0x0C
+#AXIS_REMAP_CONFIG: 0x24
+#AXIS_REMAP_SIGN: 0x06
+

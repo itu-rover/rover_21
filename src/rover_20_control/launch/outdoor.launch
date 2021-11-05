@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <!-- Run rover_bringup !!! -->
+    <!--include file="$(find outdoor_waypoint_nav)/launch/include/husky_bringup.launch" /-->
+
+    <!-- launch Sick Mrs1000 lidar -->
+    <!--include file="$(find rover_sick_tim)/launch/sick_mrs1000.launch" /-->
+
+    <!-- launch um6 imu -->
+
+    <node pkg="rover_simulator" type="velocity_odom_simulation.py" name="velocity_odom_simulation" output="screen"/>
+
+    <!-- Launch robot_localization and navsat !!! -->
+    <include file="$(find rover_localization)/launch/localization.launch"/>
+
+    <!-- Run gmapping to create map !!!-->
+    <!--include file="$(find husky_navigation)/launch/gmapping.launch" /-->
+
+    <!-- Launch hector_slam for laser odometry and mapping -->
+    <!-- include file="$(find hector_mapping_nav)/launch/scanmatch_nav.launch" /-->
+
+    <!-- Run husky_navigation to enable move_base !!! -->
+    <!--include file="$(find rover_navigation)/launch/move_base.launch" /-->
+
+    <!-- launch safety node to allow the user to disable velocity commands to the robot !!!-->
+    <include file="$(find rover_waypoint_nav)/launch/outdoor/outdoor_waypoint_nav.launch" />
+
+  <!-- Run rviz -->
+     <!-- Using standard configuration file -->
+  	<!--node name="rviz" pkg="rviz" type="rviz" args="-d $(find husky_viz)/rviz/model.rviz" /-->
+     <!-- Using custom configuration file -->
+	<!--node name="rviz" pkg="rviz" type="rviz" args="-d $(find outdoor_waypoint_nav)/rviz_config/model.rviz" /-->
+
+</launch>
