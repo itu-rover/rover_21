@@ -27,6 +27,9 @@
   <run_depend>base_local_planner</run_depend>
   <run_depend>dwa_local_planner</run_depend>
 
+  <build_depend>message_generation</build_depend>
+  <run_depend>message_runtime</run_depend>
+
   <export>
   </export>
 </package>

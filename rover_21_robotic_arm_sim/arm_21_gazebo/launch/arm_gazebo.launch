@@ -1,0 +1,23 @@
+<launch>
+
+<!-- launch empty world -->
+<include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="true"/>
+</include>
+
+
+<!-- send urdf to the parameter server -->
+<param name="robot_description" command="$(find xacro)/xacro.py '$(find arm_21_gazebo)/urdf/arm_21_gazebo.urdf.xacro'"/>
+
+
+<!-- spawn robotic arm -->
+<node
+    name="spawn_model"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    args="-file $(find arm_21_gazebo)/urdf/arm_21_gazebo.urdf.xacro -urdf -model arm_21_gazebo"
+    output="screen" />
+
+
+
+</launch>

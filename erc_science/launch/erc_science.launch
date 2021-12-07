@@ -1,0 +1,8 @@
+<launch>
+    <!--include file="$(find realsense2_camera)/launch/rs_camera.launch" />
+    <include file="$(find ar_tag_demo)/launch/c922_left.launch" /-->
+    <!--include file="$(find ar_tag_demo)/launch/c922_right.launch" /-->
+    
+    <node pkg="erc_science" name="erc_science" type="erc_science" output="screen"/>
+    <node pkg="erc_science" name="erc_science_cam" type="erc_science_cam" output="screen"/>
+</launch>

@@ -1,0 +1,7 @@
+
+<launch>
+ <include file="$(find ar_tag_demo)/launch/c922_left.launch" />
+ <include file="$(find ar_tag_demo)/launch/c922_right.launch" />
+ <include file="$(find d435_rtabmap)/launch/rs_multiple_devices.launch" />
+
+</launch>

@@ -1,0 +1,15 @@
+<!-- RTAB-Map launcher -->
+
+<launch>
+
+    <arg name="camera_name"          default="d435" />
+
+    <!-- Realsense Launcher-->
+    <include file="$(find d435_rtabmap)/launch/rs_camera.launch"/>
+
+    <!-- RTAB-Map and RTABmapviz-->
+    <arg name="custom_rtabmap_launch_file" default="$(find d435_rtabmap)/launch/include/rs_d435_rtabmap.launch.xml"/>
+    <include file="$(arg custom_rtabmap_launch_file)"/>
+    <!--/include-->   
+
+</launch>

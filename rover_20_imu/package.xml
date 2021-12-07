@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bosch_imu_driver</name>
+  <version>1.0.1</version>
+  <author>Michal Drwiega</author>
+  <maintainer email="drwiega.michal@gmail.com">Michal Drwiega</maintainer>
+  <license>BSD</license>
+  <url type="website">http://ros.org/wiki/bosch_imu_driver</url>
+
+	<description>
+  The package contains a driver for IMU Bosch BNO055.
+  In the current version, only UART communication is supported.
+	</description>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+</package>
+
