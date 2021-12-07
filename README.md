@@ -1,5 +1,11 @@
 Rover 2021 Master Repository
 
+Clone this repository using the following command: 
+```
+git clone --recurse-submodules https://github.com/itu-rover/rover_21.git
+```
+
+
 Links for packages of LiDARs:
 
 Link to download Velodyne drivers: https://github.com/ros-drivers/velodyne
